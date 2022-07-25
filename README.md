@@ -19,7 +19,7 @@ Primer Commit - La aplicacion completada en su totalidad pero __ sin las Relacio
 Segundo Commit - Se agregan las relaciones dentro del Proyecto @OneToMany , al principio con errores al traer los datos, por un tema de dependecia entre ellos. Pero ya se pudo corregir modificando
 					gran parte del codigo para poder establecer y mapear de forma correcta los datos.
 
-Tercer Commit - Se agrega la exepcion de que si el Departamento esta 'False' o habilitado, no se pueda agregar un Empleado.
+Tercer Commit - Se agrega la exepcion de que si el Departamento esta 'False' o deshabilitado, no se pueda agregar un Empleado.
 
 Cuarto Commit - Se agregan las colecciones de POSTMAN que se ocuparon para realizar las pruebas correspondientes:
 
