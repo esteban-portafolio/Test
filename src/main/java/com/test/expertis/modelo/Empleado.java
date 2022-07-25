@@ -19,12 +19,18 @@ import javax.persistence.TemporalType;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.test.expertis.modelo.DTO.EmpleadoDto;
 
 import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Builder
+@Data
 @Entity
-@Table(name = "Empleados")
+@Table(name = "empleados")
 public class Empleado {
 	
 	@Id
@@ -43,59 +49,21 @@ public class Empleado {
 	@Column(name = "fecha_ingreso")
 	@JsonFormat(pattern="dd-MM-yyyy")
     private LocalDate fecha;
-
-	public Empleado() {
-		
+	
+	@ManyToOne
+	private Departamento departamento;
+	
+	
+	public static Empleado toDomai(EmpleadoDto empleadoDto) {
+		Empleado empleado = new Empleado();
+		empleado.setNombre(empleadoDto.getNombre());
+		empleado.setSalario(empleadoDto.getSalario());
+		empleado.setEspecialidad(empleadoDto.getEspecialidad());
+        empleado.setFecha(empleadoDto.getFecha());
+        return empleado;
 	}
 	
-	public Empleado(long id, String nombre, double salario, String especialidad, LocalDate fecha) {
-		super();
-		this.id = id;
-		this.nombre = nombre;
-		this.salario = salario;
-		this.especialidad = especialidad;
-		this.fecha = fecha;
-	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getNombre() {
-		return nombre;
-	}
-
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
-	public double getSalario() {
-		return salario;
-	}
-
-	public void setSalario(double salario) {
-		this.salario = salario;
-	}
-
-	public String getEspecialidad() {
-		return especialidad;
-	}
-
-	public void setEspecialidad(String especialidad) {
-		this.especialidad = especialidad;
-	}
-
-	public LocalDate getFecha() {
-		return fecha;
-	}
-
-	public void setFecha(LocalDate fecha) {
-		this.fecha = fecha;
-	}
 
 
 

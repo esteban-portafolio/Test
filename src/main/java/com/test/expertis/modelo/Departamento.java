@@ -1,14 +1,23 @@
 package com.test.expertis.modelo;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import lombok.Builder;
+import com.test.expertis.modelo.DTO.DepartamentoDto;
 
-@Builder
+
+import lombok.Data;
+import lombok.ToString;
+
+@Data
 @Entity
 @Table(name = "Departamentos")
 public class Departamento {
@@ -23,42 +32,24 @@ public class Departamento {
 	@Column(name = "activo")
 	private boolean estado;
 
-	public Departamento() {
-		
-	}
+	@OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name = "empleado_id")
+    @ToString.Exclude
+    private List<Empleado> empleadoList;
+	
+	public void addEmpleado(Empleado empleado){
+        empleadoList.add(empleado);
+    }
+    public void removeEmpleado(Empleado empleado){
+        empleadoList.remove(empleado);
+    }
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getNom_dep() {
-		return nom_dep;
-	}
-
-	public void setNom_dep(String nom_dep) {
-		this.nom_dep = nom_dep;
-	}
-
-	public boolean isEstado() {
-		return estado;
-	}
-
-	public void setEstado(boolean estado) {
-		this.estado = estado;
-	}
-
-
-	public Departamento(long id, String nom_dep, boolean estado) {
-		super();
-		this.id = id;
-		this.nom_dep = nom_dep;
-		this.estado = estado;
-	}
-
+    public static Departamento toDomain(DepartamentoDto departamentoDto){
+        Departamento departamento = new Departamento();
+        departamento.setNom_dep(departamentoDto.getName());
+        departamento.setEstado(departamentoDto.isEstado());
+        return departamento;
+    }
 
 
 	

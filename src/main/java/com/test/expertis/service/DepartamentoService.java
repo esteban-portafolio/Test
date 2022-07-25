@@ -1,75 +1,83 @@
 package com.test.expertis.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.test.expertis.exception.EmpleadoIsAlreadyAssignedException;
 import com.test.expertis.exception.ResourceNotFoundException;
 import com.test.expertis.modelo.Departamento;
 import com.test.expertis.modelo.Empleado;
 import com.test.expertis.repository.DepartamentoRepository;
 
 @Service
-public class DepartamentoService implements IDepartamentoService {
+public class DepartamentoService {
+	
+	private final DepartamentoRepository dRepository;
+    private final EmpleadoService eService;
 
-	@Autowired
-	private DepartamentoRepository dRepository;
+    @Autowired
+    public DepartamentoService(DepartamentoRepository dRepository,EmpleadoService eService){
+        this.dRepository = dRepository;
+        this.eService = eService;
+    }
 
-	@Override
-	public List<Departamento> listar() {
+    public Departamento addDepartamento(Departamento departamento){
+        return dRepository.save(departamento);
+    }
 
-		return this.dRepository.findAll();
-	}
+    public List<Departamento> getDepartamentos(){
+        return StreamSupport
+                .stream(dRepository.findAll().spliterator(),false)
+                .collect(Collectors.toList());
+    }
 
-	@Override
-	public Departamento listDepartamentoID(long id) {
-		Optional<Departamento> dOptional = this.dRepository.findById(id);
+    public Departamento getDepartamento(Long id){
+        return dRepository.findById(id).orElseThrow(()->
+                new ResourceNotFoundException(id));
+    }
 
-		if (dOptional.isPresent()) {
-			return dOptional.get();
-		} else {
-			throw new ResourceNotFoundException("No existe data con el ID: " + id);
-		}
-	}
+    public Departamento deleteDepartamento(Long id){
+        Departamento departamento = getDepartamento(id);
+        dRepository.delete(departamento);
+        return departamento;
+    }
 
-	@Override
-	public Departamento agregar(Departamento depart) {
+    @Transactional
+    public Departamento updateDepartamento(Long id, Departamento departamento){
+        Departamento departamentoUpdate = getDepartamento(id);
+        departamentoUpdate.setNom_dep(departamento.getNom_dep());
+        departamentoUpdate.setEstado(departamento.isEstado());
+        return departamentoUpdate;
+    }
 
-		return dRepository.save(depart);
-	}
+    @Transactional
+    public Departamento addEmpleadoToDepartamento(Long departamentoId,Long empleadoId){
+        Departamento departamento = getDepartamento(departamentoId);
+        Empleado empleado = eService.getEmpleado(empleadoId);
+        if(Objects.nonNull(empleado.getDepartamento())){
+            throw new EmpleadoIsAlreadyAssignedException(empleadoId,empleado.getDepartamento().getId());
+        }
+        departamento.addEmpleado(empleado);
+        empleado.setDepartamento(departamento);
+        return departamento;
+    }
 
-	@Override
-	public Departamento actualizar(Departamento depart) {
-		Optional<Departamento> dOptional = this.dRepository.findById(depart.getId());
-
-		if (dOptional.isPresent()) {
-			Departamento dUpdate = dOptional.get();
-			dUpdate.setId(depart.getId());
-			dUpdate.setNom_dep(depart.getNom_dep());
-			dUpdate.setEstado(depart.isEstado());
-			dRepository.save(dUpdate);
-
-			return dUpdate;
-		} else {
-			throw new ResourceNotFoundException("No existe data con el ID: " + depart.getId());
-		}
-
-	}
-
-	@Override
-	public void delete(long id) {
-		Optional<Departamento> dOptional = this.dRepository.findById(id);
-
-		if (dOptional.isPresent()) {
-			this.dRepository.delete(dOptional.get());
-		} else {
-			throw new ResourceNotFoundException("No existe data con el ID: " + id);
-		}
-
-	}
+    @Transactional
+    public Departamento removeEmpleadofromDepartamento(Long departamentoId,Long empleadoId){
+        Departamento departamento = getDepartamento(departamentoId);
+        Empleado empleado = eService.getEmpleado(empleadoId);
+        departamento.removeEmpleado(empleado);
+        empleado.setDepartamento(null);
+        eService.updateEmpleado(empleadoId, empleado);
+        return departamento;
+    }
 
 }

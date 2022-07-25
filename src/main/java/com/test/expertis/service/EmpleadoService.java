@@ -2,6 +2,8 @@ package com.test.expertis.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.transaction.Transactional;
 
@@ -13,66 +15,42 @@ import com.test.expertis.modelo.Empleado;
 import com.test.expertis.repository.EmpleadoRepository;
 
 @Service
-public class EmpleadoService implements IEmpleadoService{
+public class EmpleadoService {
 	
+	
+	private final EmpleadoRepository eRepository;
+
 	@Autowired
-	private EmpleadoRepository eRepository;
+    public EmpleadoService(EmpleadoRepository eRepository){
+        this.eRepository = eRepository;
+    }
+    public Empleado addEmpleado(Empleado empleado){
+        return  eRepository.save(empleado);
+    }
 
-	@Override
-	public List<Empleado> listar() {
+    public List<Empleado> getEmpleados(){
+        return StreamSupport
+                .stream(eRepository.findAll().spliterator(),false)
+                .collect(Collectors.toList());
+    }
 
-		return this.eRepository.findAll();
-	}
+    public Empleado getEmpleado(Long id){
+        return eRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(id));
+    }
+    public Empleado deleteEmpleado(Long id){
+        Empleado empleado = getEmpleado(id);
+        eRepository.delete(empleado);
+        return empleado;
+    }
 
-	@Override
-	public Empleado listEmpleadoID(long id) {
-		Optional<Empleado> eOptional = this.eRepository.findById(id);
-		
-		if (eOptional.isPresent()) {
-			return eOptional.get();
-		}else {
-			throw new ResourceNotFoundException("No existe data con el ID: "+ id);
-		}
-		
-	}
-
-	@Override
-	public Empleado crear(Empleado empleado) {
-		
-		return eRepository.save(empleado);
-	}
-
-	@Override
-	public Empleado actualizar(Empleado empleado) {
-		Optional<Empleado> eOptional = this.eRepository.findById(empleado.getId());
-		
-		if (eOptional.isPresent()) {
-			Empleado eUpdate = eOptional.get();
-			eUpdate.setId(empleado.getId());
-			eUpdate.setEspecialidad(empleado.getEspecialidad());
-			eUpdate.setNombre(empleado.getNombre());
-			eUpdate.setSalario(empleado.getSalario());
-			eUpdate.setFecha(empleado.getFecha());
-			eRepository.save(eUpdate);
-			
-			return eUpdate;
-		}else {
-			throw new ResourceNotFoundException("No existe data con el ID: "+ empleado.getId());
-		}
-		
-	}
-
-	@Override
-	public void delete(long id) {
-		Optional<Empleado> eOptional = this.eRepository.findById(id);
-		
-		if (eOptional.isPresent()) {
-			this.eRepository.delete(eOptional.get());
-		}else {
-			throw new ResourceNotFoundException("No existe data con el ID: "+ id);
-		}
-		
-	}
+    @Transactional
+    public Empleado updateEmpleado(Long id,Empleado empleado){
+        Empleado empleadoUpdate = getEmpleado(id);
+        empleadoUpdate.setNombre(empleado.getNombre());
+        empleadoUpdate.setEspecialidad(empleado.getEspecialidad());
+        empleadoUpdate.setSalario(empleado.getSalario());
+        return empleadoUpdate;
+    }
 
 	
 
